@@ -1784,6 +1784,16 @@ class ModelResourceTestCase(TestCase):
         self.assertEqual(punr.obj_get_list(request=authed_request2).count(), 2)
         self.assertEqual(list(punr.get_object_list(authed_request).values_list('id', flat=True)), [1, 2])
         self.assertEqual(list(punr.get_object_list(authed_request2).values_list('id', flat=True)), [4, 6])
+
+        # Demonstrate that a user cannot get or delete objects he is not
+        # permitted
+        authed_request3 = type('MockRequest', (object,), {'GET': {}, 
+            'META': {},
+            'user': User.objects.get(username='johndoe')})
+        resp = punr.get_detail(authed_request3, pk=4)
+        self.assertEqual(resp.status_code, 410)
+        resp = punr.delete_detail(authed_request3, pk=4)
+        self.assertEqual(resp.status_code, 410)
     
     def test_browser_cache(self):
         resource = NoteResource()
